@@ -115,18 +115,18 @@ func NewSpacetimeGrid(width, height int) *SpacetimeGrid {
 }
 
 func (g *Game) initializeParticles() {
-	// 중앙에 큰 질량체 (블랙홀 또는 별)
+	// Central massive body (black hole or star)
 	g.particles = append(g.particles, &Particle{
 		Position:    Vector3D{screenWidth / 2, screenHeight / 2, 0},
 		Velocity:    Vector3D{0, 0, 0},
 		Mass:        1e12,
 		Radius:      20,
-		Color:       color.RGBA{255, 255, 0, 255}, // 노란색
+		Color:       color.RGBA{255, 255, 0, 255}, // Yellow
 		Trail:       make([]Vector3D, 0),
 		MaxTrailLen: 100,
 	})
 
-	// 궤도를 도는 작은 파티클들
+	// Orbiting smaller particles
 	for i := 0; i < 8; i++ {
 		angle := float64(i) * 2 * math.Pi / 8
 		distance := 150.0 + rand.Float64()*200
@@ -137,7 +137,7 @@ func (g *Game) initializeParticles() {
 			rand.Float64()*50 - 25,
 		}
 
-		// 원형 궤도 속도 계산
+		// Calculate circular orbital velocity
 		orbitalSpeed := math.Sqrt(G*g.particles[0].Mass/distance) * 0.1
 		vel := Vector3D{
 			-orbitalSpeed * math.Sin(angle),
@@ -176,17 +176,17 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) handleInput() {
-	// 일시정지/재생
+	// Pause/Resume
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		g.paused = !g.paused
 	}
 
-	// 그리드 표시 토글
+	// Toggle grid display
 	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
 		g.showGrid = !g.showGrid
 	}
 
-	// 시간 스케일 조정
+	// Time scale adjustment
 	if ebiten.IsKeyPressed(ebiten.KeyEqual) {
 		g.timeScale = math.Min(g.timeScale*1.1, 5.0)
 	}
@@ -194,7 +194,7 @@ func (g *Game) handleInput() {
 		g.timeScale = math.Max(g.timeScale*0.9, 0.1)
 	}
 
-	// 줌 조정
+	// Zoom adjustment
 	if ebiten.IsKeyPressed(ebiten.KeyZ) {
 		g.zoom = math.Min(g.zoom*1.05, 3.0)
 	}
@@ -202,7 +202,7 @@ func (g *Game) handleInput() {
 		g.zoom = math.Max(g.zoom*0.95, 0.3)
 	}
 
-	// 카메라 이동
+	// Camera movement
 	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
 		g.camera.X -= 5
 	}
@@ -216,13 +216,13 @@ func (g *Game) handleInput() {
 		g.camera.Y += 5
 	}
 
-	// 새 파티클 추가 (마우스 클릭)
+	// Add new particle (mouse click)
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) && len(g.particles) < maxParticles {
 		x, y := ebiten.CursorPosition()
 		g.addParticle(float64(x), float64(y))
 	}
 
-	// 파티클 선택 (우클릭)
+	// Select particle (right click)
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		x, y := ebiten.CursorPosition()
 		g.selectParticle(float64(x), float64(y))
@@ -230,7 +230,7 @@ func (g *Game) handleInput() {
 }
 
 func (g *Game) addParticle(x, y float64) {
-	// 화면 좌표를 월드 좌표로 변환
+	// Convert screen coordinates to world coordinates
 	worldX := (x-screenWidth/2)/g.zoom + g.camera.X + screenWidth/2
 	worldY := (y-screenHeight/2)/g.zoom + g.camera.Y + screenHeight/2
 
@@ -266,9 +266,9 @@ func (g *Game) selectParticle(x, y float64) {
 }
 
 func (g *Game) updatePhysics() {
-	dt := g.timeScale / 60.0 // 60 FPS 기준
+	dt := g.timeScale / 60.0 // Based on 60 FPS
 
-	// 각 파티클에 대해 중력 계산
+	// Calculate gravity for each particle
 	for i, p1 := range g.particles {
 		force := Vector3D{0, 0, 0}
 
@@ -277,40 +277,40 @@ func (g *Game) updatePhysics() {
 				continue
 			}
 
-			// 거리 벡터 계산
+			// Calculate distance vector
 			r := p2.Position.Sub(p1.Position)
 			distance := r.Magnitude()
 
 			if distance < p1.Radius+p2.Radius {
-				continue // 충돌 처리는 별도로
+				continue // Collision handling is separate
 			}
 
-			// 뉴턴 중력 + 일반상대성이론 보정
+			// Newtonian gravity + General Relativity correction
 			gravityMagnitude := G * p1.Mass * p2.Mass / (distance * distance)
 
-			// 일반상대성이론 보정 (슈바르츠실트 반지름 근사)
+			// General Relativity correction (Schwarzschild radius approximation)
 			schwarzschildRadius := 2 * G * p2.Mass / (c * c)
 			relativisticCorrection := 1.0 + 3*schwarzschildRadius/(2*distance)
 
 			gravityMagnitude *= relativisticCorrection
 
-			// 방향 벡터
+			// Direction vector
 			direction := r.Normalize()
 			gravityForce := direction.Mul(gravityMagnitude)
 
 			force = force.Add(gravityForce)
 		}
 
-		// 가속도 = 힘 / 질량
+		// Acceleration = Force / Mass
 		acceleration := force.Mul(1.0 / p1.Mass)
 
-		// 속도 업데이트 (Verlet 적분)
+		// Update velocity (Verlet integration)
 		p1.Velocity = p1.Velocity.Add(acceleration.Mul(dt))
 
-		// 위치 업데이트
+		// Update position
 		p1.Position = p1.Position.Add(p1.Velocity.Mul(dt))
 
-		// 궤적 추가
+		// Add to trail
 		p1.Trail = append(p1.Trail, p1.Position)
 		if len(p1.Trail) > p1.MaxTrailLen {
 			p1.Trail = p1.Trail[1:]
@@ -319,36 +319,31 @@ func (g *Game) updatePhysics() {
 }
 
 func (g *Game) updateSpacetimeCurvature() {
-	// 그리드 초기화
+	// Initialize grid
 	for i := range g.grid.Curvature {
 		for j := range g.grid.Curvature[i] {
 			g.grid.Curvature[i][j] = 0
 		}
 	}
 
-	// 각 파티클의 질량에 따른 시공간 곡률 계산
+	// Calculate spacetime curvature based on each particle's mass
 	for _, p := range g.particles {
-		gridX := int(p.Position.X / gridSize)
-		gridY := int(p.Position.Y / gridSize)
+		// Calculate influence on surrounding grid points
+		for gy := 0; gy < g.grid.Height; gy++ {
+			for gx := 0; gx < g.grid.Width; gx++ {
+				// Grid point position in world coordinates
+				pointX := float64(gx * gridSize)
+				pointY := float64(gy * gridSize)
 
-		// 주변 그리드 포인트에 영향 계산
-		for dy := -5; dy <= 5; dy++ {
-			for dx := -5; dx <= 5; dx++ {
-				gx := gridX + dx
-				gy := gridY + dy
+				// Distance from particle to grid point
+				dx := p.Position.X - pointX
+				dy := p.Position.Y - pointY
+				distance := math.Sqrt(dx*dx + dy*dy)
 
-				if gx >= 0 && gx < g.grid.Width && gy >= 0 && gy < g.grid.Height {
-					// 그리드 포인트까지의 거리
-					pointX := float64(gx * gridSize)
-					pointY := float64(gy * gridSize)
-
-					distance := math.Sqrt(math.Pow(p.Position.X-pointX, 2) + math.Pow(p.Position.Y-pointY, 2))
-
-					if distance > 0 {
-						// 시공간 곡률 (질량에 비례, 거리의 제곱에 반비례)
-						curvature := p.Mass / (distance*distance + 1000) // 특이점 방지
-						g.grid.Curvature[gy][gx] += curvature * 1e-10    // 스케일링
-					}
+				if distance > 0 {
+					// Spacetime curvature (proportional to mass, inversely proportional to distance squared)
+					curvature := p.Mass / (distance*distance + 1000) // Prevent singularity
+					g.grid.Curvature[gy][gx] += curvature * 1e-10    // Scaling
 				}
 			}
 		}
@@ -363,25 +358,25 @@ func (g *Game) handleCollisions() {
 			distance := p1.Position.Sub(p2.Position).Magnitude()
 
 			if distance < p1.Radius+p2.Radius {
-				// 충돌 발생 - 완전 비탄성 충돌
+				// Collision occurred - perfectly inelastic collision
 				totalMass := p1.Mass + p2.Mass
 
-				// 질량 중심 계산
+				// Calculate center of mass
 				newPos := p1.Position.Mul(p1.Mass).Add(p2.Position.Mul(p2.Mass)).Mul(1.0 / totalMass)
 				newVel := p1.Velocity.Mul(p1.Mass).Add(p2.Velocity.Mul(p2.Mass)).Mul(1.0 / totalMass)
 
-				// 새로운 파티클 생성
+				// Create new particle
 				newParticle := &Particle{
 					Position:    newPos,
 					Velocity:    newVel,
 					Mass:        totalMass,
 					Radius:      math.Pow(math.Pow(p1.Radius, 3)+math.Pow(p2.Radius, 3), 1.0/3.0),
-					Color:       color.RGBA{255, 255, 255, 255}, // 흰색으로 표시
+					Color:       color.RGBA{255, 255, 255, 255}, // Display in white
 					Trail:       make([]Vector3D, 0),
 					MaxTrailLen: int(math.Max(float64(p1.MaxTrailLen), float64(p2.MaxTrailLen))),
 				}
 
-				// 기존 파티클들 제거하고 새 파티클 추가
+				// Remove existing particles and add new particle
 				g.particles = append(g.particles[:i], g.particles[i+1:]...)
 				if j > i {
 					j--
@@ -389,7 +384,7 @@ func (g *Game) handleCollisions() {
 				g.particles = append(g.particles[:j], g.particles[j+1:]...)
 				g.particles = append(g.particles, newParticle)
 
-				// 선택된 인덱스 조정
+				// Adjust selected index
 				if g.selectedIndex == i || g.selectedIndex == j {
 					g.selectedIndex = len(g.particles) - 1
 				} else if g.selectedIndex > j {
@@ -398,70 +393,118 @@ func (g *Game) handleCollisions() {
 					g.selectedIndex--
 				}
 
-				return // 한 번에 하나의 충돌만 처리
+				return // Process only one collision at a time
 			}
 		}
 	}
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0, 0, 20, 255}) // 어두운 파란색 배경
+	screen.Fill(color.RGBA{0, 0, 20, 255}) // Dark blue background
 
-	// 시공간 그리드 그리기
+	// Draw spacetime grid
 	if g.showGrid {
 		g.drawSpacetimeGrid(screen)
 	}
 
-	// 파티클 궤적 그리기
+	// Draw particle trails
 	g.drawTrails(screen)
 
-	// 파티클 그리기
+	// Draw particles
 	g.drawParticles(screen)
 
-	// UI 정보 표시
+	// Display UI information
 	g.drawUI(screen)
 }
 
 func (g *Game) drawSpacetimeGrid(screen *ebiten.Image) {
+	// Draw grid lines first (base spacetime fabric)
+	for i := 0; i <= g.grid.Height; i++ {
+		for j := 0; j <= g.grid.Width; j++ {
+			worldX := float64(j * gridSize)
+			worldY := float64(i * gridSize)
+
+			screenX := (worldX-g.camera.X)*g.zoom + screenWidth/2
+			screenY := (worldY-g.camera.Y)*g.zoom + screenHeight/2
+
+			// Skip if outside screen bounds
+			if screenX < -50 || screenX > screenWidth+50 || screenY < -50 || screenY > screenHeight+50 {
+				continue
+			}
+
+			// Draw horizontal grid lines
+			if i < g.grid.Height && j < g.grid.Width {
+				nextWorldX := float64((j + 1) * gridSize)
+				nextScreenX := (nextWorldX-g.camera.X)*g.zoom + screenWidth/2
+
+				// Get curvature for height displacement
+				curvature := g.grid.Curvature[i][j]
+				nextCurvature := float64(0)
+				if j+1 < g.grid.Width {
+					nextCurvature = g.grid.Curvature[i][j+1]
+				}
+
+				height := curvature * 5e10
+				nextHeight := nextCurvature * 5e10
+
+				vector.StrokeLine(screen, 
+					float32(screenX), float32(screenY-height), 
+					float32(nextScreenX), float32(screenY-nextHeight), 
+					1, color.RGBA{50, 50, 100, 100}, false)
+			}
+
+			// Draw vertical grid lines
+			if i < g.grid.Height && j < g.grid.Width {
+				nextWorldY := float64((i + 1) * gridSize)
+				nextScreenY := (nextWorldY-g.camera.Y)*g.zoom + screenHeight/2
+
+				// Get curvature for height displacement
+				curvature := g.grid.Curvature[i][j]
+				nextCurvature := float64(0)
+				if i+1 < g.grid.Height {
+					nextCurvature = g.grid.Curvature[i+1][j]
+				}
+
+				height := curvature * 5e10
+				nextHeight := nextCurvature * 5e10
+
+				vector.StrokeLine(screen, 
+					float32(screenX), float32(screenY-height), 
+					float32(screenX), float32(nextScreenY-nextHeight), 
+					1, color.RGBA{50, 50, 100, 100}, false)
+			}
+		}
+	}
+
+	// Draw curvature intensity points
 	for i := 0; i < g.grid.Height; i++ {
 		for j := 0; j < g.grid.Width; j++ {
 			curvature := g.grid.Curvature[i][j]
 
-			if curvature > 0 {
-				// 월드 좌표를 화면 좌표로 변환
+			if curvature > 1e-12 {
 				worldX := float64(j * gridSize)
 				worldY := float64(i * gridSize)
 
-				screenX := (worldX-g.camera.X-screenWidth/2)*g.zoom + screenWidth/2
-				screenY := (worldY-g.camera.Y-screenHeight/2)*g.zoom + screenHeight/2
+				screenX := (worldX-g.camera.X)*g.zoom + screenWidth/2
+				screenY := (worldY-g.camera.Y)*g.zoom + screenHeight/2
 
-				// 곡률에 따른 색상 강도
+				// Skip if outside screen bounds
+				if screenX < -50 || screenX > screenWidth+50 || screenY < -50 || screenY > screenHeight+50 {
+					continue
+				}
+
+				// Color intensity based on curvature
 				intensity := math.Min(curvature*1e12, 1.0)
-				alpha := uint8(intensity * 100)
+				alpha := uint8(intensity * 200)
 
-				if alpha > 5 {
-					// 3D 효과를 위한 높이 계산
-					height := curvature * 1e11
+				if alpha > 10 {
+					// 3D height effect
+					height := curvature * 5e10
 
-					// 그리드 포인트를 원으로 표시
-					vector.DrawFilledCircle(screen, float32(screenX), float32(screenY-height), 2, color.RGBA{255, 0, 0, alpha}, false)
-
-					// 연결선 그리기 (3D 효과)
-					if j > 0 {
-						prevWorldX := float64((j - 1) * gridSize)
-						prevScreenX := (prevWorldX-g.camera.X-screenWidth/2)*g.zoom + screenWidth/2
-						prevHeight := g.grid.Curvature[i][j-1] * 1e11
-
-						vector.StrokeLine(screen, float32(prevScreenX), float32(screenY-prevHeight), float32(screenX), float32(screenY-height), 1, color.RGBA{100, 0, 0, alpha / 2}, false)
-					}
-
-					if i > 0 {
-						prevWorldY := float64((i - 1) * gridSize)
-						prevScreenY := (prevWorldY-g.camera.Y-screenHeight/2)*g.zoom + screenHeight/2
-						prevHeight := g.grid.Curvature[i-1][j] * 1e11
-
-						vector.StrokeLine(screen, float32(screenX), float32(prevScreenY-prevHeight), float32(screenX), float32(screenY-height), 1, color.RGBA{100, 0, 0, alpha / 2}, false)
-					}
+					// Draw curvature point
+					radius := float32(2 + intensity*3)
+					vector.DrawFilledCircle(screen, float32(screenX), float32(screenY-height), radius, 
+						color.RGBA{255, uint8(100 + intensity*155), 0, alpha}, false)
 				}
 			}
 		}
@@ -478,13 +521,13 @@ func (g *Game) drawTrails(screen *ebiten.Image) {
 			pos1 := p.Trail[i-1]
 			pos2 := p.Trail[i]
 
-			// 월드 좌표를 화면 좌표로 변환
-			screen1X := (pos1.X-g.camera.X-screenWidth/2)*g.zoom + screenWidth/2
-			screen1Y := (pos1.Y-g.camera.Y-screenHeight/2)*g.zoom + screenHeight/2
-			screen2X := (pos2.X-g.camera.X-screenWidth/2)*g.zoom + screenWidth/2
-			screen2Y := (pos2.Y-g.camera.Y-screenHeight/2)*g.zoom + screenHeight/2
+			// Convert world coordinates to screen coordinates
+			screen1X := (pos1.X-g.camera.X)*g.zoom + screenWidth/2
+			screen1Y := (pos1.Y-g.camera.Y)*g.zoom + screenHeight/2
+			screen2X := (pos2.X-g.camera.X)*g.zoom + screenWidth/2
+			screen2Y := (pos2.Y-g.camera.Y)*g.zoom + screenHeight/2
 
-			// 궤적 색상 (점점 흐려짐)
+			// Trail color (gradually fading)
 			alpha := uint8(float64(i) / float64(len(p.Trail)) * 100)
 			trailColor := color.RGBA{p.Color.R, p.Color.G, p.Color.B, alpha}
 
@@ -495,25 +538,25 @@ func (g *Game) drawTrails(screen *ebiten.Image) {
 
 func (g *Game) drawParticles(screen *ebiten.Image) {
 	for i, p := range g.particles {
-		// 월드 좌표를 화면 좌표로 변환
-		screenX := (p.Position.X-g.camera.X-screenWidth/2)*g.zoom + screenWidth/2
-		screenY := (p.Position.Y-g.camera.Y-screenHeight/2)*g.zoom + screenHeight/2
+		// Convert world coordinates to screen coordinates
+		screenX := (p.Position.X-g.camera.X)*g.zoom + screenWidth/2
+		screenY := (p.Position.Y-g.camera.Y)*g.zoom + screenHeight/2
 
-		// Z 좌표에 따른 3D 효과
+		// 3D effect based on Z coordinate
 		zOffset := p.Position.Z * 0.1
 		screenY -= zOffset
 
 		radius := float32(p.Radius * g.zoom)
 
-		// 선택된 파티클 강조
+		// Highlight selected particle
 		if i == g.selectedIndex {
 			vector.StrokeCircle(screen, float32(screenX), float32(screenY), radius+3, 2, color.RGBA{255, 255, 255, 255}, false)
 		}
 
-		// 파티클 그리기
+		// Draw particle
 		vector.DrawFilledCircle(screen, float32(screenX), float32(screenY), radius, p.Color, false)
 
-		// 질량이 큰 파티클은 후광 효과
+		// Halo effect for massive particles
 		if p.Mass > 5e11 {
 			for r := radius + 5; r < radius+15; r += 2 {
 				alpha := uint8(50 * (radius + 15 - r) / 10)
@@ -525,33 +568,33 @@ func (g *Game) drawParticles(screen *ebiten.Image) {
 }
 
 func (g *Game) drawUI(screen *ebiten.Image) {
-	// 상태 정보
-	status := fmt.Sprintf("파티클: %d | 시간배율: %.1fx | 줌: %.1fx", len(g.particles), g.timeScale, g.zoom)
+	// Status information
+	status := fmt.Sprintf("Particles: %d | Time Scale: %.1fx | Zoom: %.1fx", len(g.particles), g.timeScale, g.zoom)
 	if g.paused {
-		status += " | 일시정지"
+		status += " | PAUSED"
 	}
 	ebitenutil.DebugPrint(screen, status)
 
-	// 조작법
+	// Controls
 	instructions := []string{
-		"조작법:",
-		"SPACE: 일시정지/재생",
-		"G: 그리드 표시 토글",
-		"+/-: 시간 배율 조정",
-		"Z/X: 줌 인/아웃",
-		"화살표: 카메라 이동",
-		"좌클릭: 파티클 추가",
-		"우클릭: 파티클 선택",
+		"Controls:",
+		"SPACE: Pause/Resume",
+		"G: Toggle Grid Display",
+		"+/-: Adjust Time Scale",
+		"Z/X: Zoom In/Out",
+		"Arrows: Move Camera",
+		"Left Click: Add Particle",
+		"Right Click: Select Particle",
 	}
 
 	for i, instruction := range instructions {
 		ebitenutil.DebugPrintAt(screen, instruction, 10, 30+i*15)
 	}
 
-	// 선택된 파티클 정보
+	// Selected particle information
 	if g.selectedIndex >= 0 && g.selectedIndex < len(g.particles) {
 		p := g.particles[g.selectedIndex]
-		info := fmt.Sprintf("선택된 파티클:\n질량: %.2e\n속도: %.1f\n위치: (%.1f, %.1f, %.1f)",
+		info := fmt.Sprintf("Selected Particle:\nMass: %.2e\nVelocity: %.1f\nPosition: (%.1f, %.1f, %.1f)",
 			p.Mass, p.Velocity.Magnitude(), p.Position.X, p.Position.Y, p.Position.Z)
 		ebitenutil.DebugPrintAt(screen, info, screenWidth-200, 30)
 	}
@@ -563,7 +606,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func main() {
 	ebiten.SetWindowSize(screenWidth, screenHeight)
-	ebiten.SetWindowTitle("일반상대성이론 시뮬레이션 - N-Body 중력 시스템")
+	ebiten.SetWindowTitle("General Relativity Simulation - N-Body Gravity System")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	game := NewGame()
