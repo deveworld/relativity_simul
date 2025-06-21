@@ -28,37 +28,35 @@ func processInput(camera *rl.Camera3D) {
 
 	// Handle mouse rotation when right button is held
 	if rl.IsMouseButtonDown(rl.MouseRightButton) {
-		mouseDelta := rl.GetMouseDelta()
+		// Set mouse to center and get delta from center
+		centerX := screenWidth / 2
+		centerY := screenHeight / 2
+		mousePos := rl.GetMousePosition()
 		
-		// Limit mouse delta to prevent large jumps
-		if mouseDelta.X > 50 {
-			mouseDelta.X = 50
-		}
-		if mouseDelta.X < -50 {
-			mouseDelta.X = -50
-		}
-		if mouseDelta.Y > 50 {
-			mouseDelta.Y = 50
-		}
-		if mouseDelta.Y < -50 {
-			mouseDelta.Y = -50
+		deltaX := mousePos.X - float32(centerX)
+		deltaY := mousePos.Y - float32(centerY)
+		
+		// Only process if there's actual movement
+		if deltaX != 0 || deltaY != 0 {
+			yaw += deltaX * mouseSensitivity
+			pitch -= deltaY * mouseSensitivity
+
+			// Clamp pitch to prevent flipping
+			if pitch > 1.5 {
+				pitch = 1.5
+			}
+			if pitch < -1.5 {
+				pitch = -1.5
+			}
+
+			// Update camera target based on yaw and pitch
+			camera.Target.X = camera.Position.X + float32(math.Cos(float64(yaw))*math.Cos(float64(pitch)))
+			camera.Target.Y = camera.Position.Y + float32(math.Sin(float64(pitch)))
+			camera.Target.Z = camera.Position.Z + float32(math.Sin(float64(yaw))*math.Cos(float64(pitch)))
 		}
 		
-		yaw += mouseDelta.X * mouseSensitivity
-		pitch -= mouseDelta.Y * mouseSensitivity
-
-		// Clamp pitch to prevent flipping
-		if pitch > 1.5 {
-			pitch = 1.5
-		}
-		if pitch < -1.5 {
-			pitch = -1.5
-		}
-
-		// Update camera target based on yaw and pitch
-		camera.Target.X = camera.Position.X + float32(math.Cos(float64(yaw))*math.Cos(float64(pitch)))
-		camera.Target.Y = camera.Position.Y + float32(math.Sin(float64(pitch)))
-		camera.Target.Z = camera.Position.Z + float32(math.Sin(float64(yaw))*math.Cos(float64(pitch)))
+		// Reset mouse to center
+		rl.SetMousePosition(centerX, centerY)
 	}
 
 	// Calculate forward and right vectors in XZ plane only
