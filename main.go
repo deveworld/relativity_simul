@@ -9,16 +9,35 @@ const (
 	screenHeight = 1080
 	gridSize     = 20
 	gridSpacing  = 1.0
+	moveSpeed    = 0.1
 )
 
 var (
 	pause = false // Press 'P' to toggle
 )
 
-func processInput() {
+func processInput(camera *rl.Camera3D) {
 	// Toggle Pause
 	if rl.IsKeyPressed(rl.KeyP) {
 		pause = !pause
+	}
+
+	// WASD movement in XZ plane
+	if rl.IsKeyDown(rl.KeyW) {
+		camera.Position.Z -= moveSpeed
+		camera.Target.Z -= moveSpeed
+	}
+	if rl.IsKeyDown(rl.KeyS) {
+		camera.Position.Z += moveSpeed
+		camera.Target.Z += moveSpeed
+	}
+	if rl.IsKeyDown(rl.KeyA) {
+		camera.Position.X -= moveSpeed
+		camera.Target.X -= moveSpeed
+	}
+	if rl.IsKeyDown(rl.KeyD) {
+		camera.Position.X += moveSpeed
+		camera.Target.X += moveSpeed
 	}
 }
 
@@ -43,7 +62,7 @@ func main() {
 	// Main game loop
 	for !rl.WindowShouldClose() {
 		// Handle input
-		processInput()
+		processInput(&camera)
 		if !rl.IsMouseButtonDown(rl.MouseRightButton) {
 			rl.SetMousePosition(screenWidth/2, screenHeight/2)
 		}
