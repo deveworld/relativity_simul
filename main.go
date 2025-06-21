@@ -1,8 +1,8 @@
 package main
 
 import (
-	"math"
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"math"
 )
 
 const (
@@ -14,10 +14,10 @@ const (
 )
 
 var (
-	pause = false // Press 'P' to toggle
+	pause            = false // Press 'P' to toggle
 	mouseSensitivity = float32(0.003)
-	yaw = float32(0.0)
-	pitch = float32(0.0)
+	yaw              = float32(0.0)
+	pitch            = float32(0.0)
 )
 
 func processInput(camera *rl.Camera3D) {
@@ -31,7 +31,7 @@ func processInput(camera *rl.Camera3D) {
 		mouseDelta := rl.GetMouseDelta()
 		yaw -= mouseDelta.X * mouseSensitivity
 		pitch -= mouseDelta.Y * mouseSensitivity
-		
+
 		// Clamp pitch to prevent flipping
 		if pitch > 1.5 {
 			pitch = 1.5
@@ -39,7 +39,7 @@ func processInput(camera *rl.Camera3D) {
 		if pitch < -1.5 {
 			pitch = -1.5
 		}
-		
+
 		// Update camera target based on yaw and pitch
 		camera.Target.X = camera.Position.X + float32(math.Cos(float64(yaw))*math.Cos(float64(pitch)))
 		camera.Target.Y = camera.Position.Y + float32(math.Sin(float64(pitch)))
