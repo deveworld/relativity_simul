@@ -22,22 +22,44 @@ func processInput(camera *rl.Camera3D) {
 		pause = !pause
 	}
 
+	// Calculate forward and right vectors in XZ plane
+	forward := rl.Vector3Subtract(camera.Target, camera.Position)
+	forward.Y = 0 // Keep movement in XZ plane
+	forward = rl.Vector3Normalize(forward)
+	
+	right := rl.Vector3CrossProduct(forward, rl.NewVector3(0, 1, 0))
+	right = rl.Vector3Normalize(right)
+
 	// WASD movement in XZ plane
 	if rl.IsKeyDown(rl.KeyW) {
-		camera.Position.Z -= moveSpeed
-		camera.Target.Z -= moveSpeed
+		movement := rl.Vector3Scale(forward, moveSpeed)
+		camera.Position = rl.Vector3Add(camera.Position, movement)
+		camera.Target = rl.Vector3Add(camera.Target, movement)
 	}
 	if rl.IsKeyDown(rl.KeyS) {
-		camera.Position.Z += moveSpeed
-		camera.Target.Z += moveSpeed
+		movement := rl.Vector3Scale(forward, -moveSpeed)
+		camera.Position = rl.Vector3Add(camera.Position, movement)
+		camera.Target = rl.Vector3Add(camera.Target, movement)
 	}
 	if rl.IsKeyDown(rl.KeyA) {
-		camera.Position.X -= moveSpeed
-		camera.Target.X -= moveSpeed
+		movement := rl.Vector3Scale(right, -moveSpeed)
+		camera.Position = rl.Vector3Add(camera.Position, movement)
+		camera.Target = rl.Vector3Add(camera.Target, movement)
 	}
 	if rl.IsKeyDown(rl.KeyD) {
-		camera.Position.X += moveSpeed
-		camera.Target.X += moveSpeed
+		movement := rl.Vector3Scale(right, moveSpeed)
+		camera.Position = rl.Vector3Add(camera.Position, movement)
+		camera.Target = rl.Vector3Add(camera.Target, movement)
+	}
+
+	// Q/E movement in Y axis (up/down)
+	if rl.IsKeyDown(rl.KeyQ) {
+		camera.Position.Y -= moveSpeed
+		camera.Target.Y -= moveSpeed
+	}
+	if rl.IsKeyDown(rl.KeyE) {
+		camera.Position.Y += moveSpeed
+		camera.Target.Y += moveSpeed
 	}
 }
 
