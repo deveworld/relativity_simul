@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -14,7 +15,7 @@ const (
 
 var (
 	pause = false // Press 'P' to toggle
-	mouseSensitivity = 0.003
+	mouseSensitivity = float32(0.003)
 	yaw = float32(0.0)
 	pitch = float32(0.0)
 )
@@ -40,14 +41,14 @@ func processInput(camera *rl.Camera3D) {
 		}
 		
 		// Update camera target based on yaw and pitch
-		camera.Target.X = camera.Position.X + float32(rl.Cos(yaw)*rl.Cos(pitch))
-		camera.Target.Y = camera.Position.Y + float32(rl.Sin(pitch))
-		camera.Target.Z = camera.Position.Z + float32(rl.Sin(yaw)*rl.Cos(pitch))
+		camera.Target.X = camera.Position.X + float32(math.Cos(float64(yaw))*math.Cos(float64(pitch)))
+		camera.Target.Y = camera.Position.Y + float32(math.Sin(float64(pitch)))
+		camera.Target.Z = camera.Position.Z + float32(math.Sin(float64(yaw))*math.Cos(float64(pitch)))
 	}
 
 	// Calculate forward and right vectors in XZ plane only
-	forward := rl.NewVector3(float32(rl.Cos(yaw)), 0, float32(rl.Sin(yaw)))
-	right := rl.NewVector3(float32(rl.Cos(yaw-1.5708)), 0, float32(rl.Sin(yaw-1.5708))) // yaw - π/2
+	forward := rl.NewVector3(float32(math.Cos(float64(yaw))), 0, float32(math.Sin(float64(yaw))))
+	right := rl.NewVector3(float32(math.Cos(float64(yaw-1.5708))), 0, float32(math.Sin(float64(yaw-1.5708)))) // yaw - π/2
 
 	// WASD movement in XZ plane only
 	if rl.IsKeyDown(rl.KeyW) {
