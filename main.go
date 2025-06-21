@@ -29,7 +29,7 @@ func processInput(camera *rl.Camera3D) {
 	// Handle mouse rotation when right button is held
 	if rl.IsMouseButtonDown(rl.MouseRightButton) {
 		mouseDelta := rl.GetMouseDelta()
-		yaw -= mouseDelta.X * mouseSensitivity
+		yaw += mouseDelta.X * mouseSensitivity
 		pitch -= mouseDelta.Y * mouseSensitivity
 
 		// Clamp pitch to prevent flipping
