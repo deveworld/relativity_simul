@@ -77,42 +77,4 @@ func drawGrid3D(size int, spacing float32) {
 			rl.Gray,
 		)
 	}
-
-	// Draw grid lines on XY plane (vertical grid facing Z)
-	for i := 0; i <= size; i++ {
-		pos := float32(i)*spacing - halfSize
-		
-		// Lines parallel to X axis
-		rl.DrawLine3D(
-			rl.NewVector3(-halfSize, pos, 0),
-			rl.NewVector3(halfSize, pos, 0),
-			rl.LightGray,
-		)
-		
-		// Lines parallel to Y axis
-		rl.DrawLine3D(
-			rl.NewVector3(pos, -halfSize, 0),
-			rl.NewVector3(pos, halfSize, 0),
-			rl.LightGray,
-		)
-	}
-
-	// Draw grid lines on YZ plane (vertical grid facing X)
-	for i := 0; i <= size; i++ {
-		pos := float32(i)*spacing - halfSize
-		
-		// Lines parallel to Y axis
-		rl.DrawLine3D(
-			rl.NewVector3(0, -halfSize, pos),
-			rl.NewVector3(0, halfSize, pos),
-			rl.LightGray,
-		)
-		
-		// Lines parallel to Z axis
-		rl.DrawLine3D(
-			rl.NewVector3(0, pos, -halfSize),
-			rl.NewVector3(0, pos, halfSize),
-			rl.LightGray,
-		)
-	}
 }
