@@ -1,5 +1,118 @@
 package main
 
-func main() {
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
+const (
+	screenWidth  = 800
+	screenHeight = 600
+	gridSize     = 20
+	gridSpacing  = 1.0
+)
+
+func main() {
+	// Initialize window
+	rl.InitWindow(screenWidth, screenHeight, "3D Grid - Raylib")
+	defer rl.CloseWindow()
+
+	// Set up camera
+	camera := rl.Camera3D{
+		Position:   rl.NewVector3(10.0, 10.0, 10.0),
+		Target:     rl.NewVector3(0.0, 0.0, 0.0),
+		Up:         rl.NewVector3(0.0, 1.0, 0.0),
+		Fovy:       45.0,
+		Projection: rl.CameraPerspective,
+	}
+
+	rl.SetTargetFPS(60)
+
+	// Main game loop
+	for !rl.WindowShouldClose() {
+		// Update camera
+		rl.UpdateCamera(&camera, rl.CameraOrbital)
+
+		// Draw
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.RayWhite)
+
+		rl.BeginMode3D(camera)
+
+		// Draw 3D grid
+		drawGrid3D(gridSize, gridSpacing)
+
+		// Draw coordinate axes
+		rl.DrawLine3D(rl.NewVector3(0, 0, 0), rl.NewVector3(5, 0, 0), rl.Red)   // X axis
+		rl.DrawLine3D(rl.NewVector3(0, 0, 0), rl.NewVector3(0, 5, 0), rl.Green) // Y axis
+		rl.DrawLine3D(rl.NewVector3(0, 0, 0), rl.NewVector3(0, 0, 5), rl.Blue)  // Z axis
+
+		rl.EndMode3D()
+
+		// Draw UI
+		rl.DrawText("3D Grid with Raylib", 10, 10, 20, rl.DarkGray)
+		rl.DrawText("Mouse: Orbit camera", 10, 40, 10, rl.Gray)
+
+		rl.EndDrawing()
+	}
+}
+
+func drawGrid3D(size int, spacing float32) {
+	halfSize := float32(size) * spacing / 2.0
+
+	// Draw grid lines on XZ plane (horizontal grid)
+	for i := 0; i <= size; i++ {
+		pos := float32(i)*spacing - halfSize
+		
+		// Lines parallel to X axis
+		rl.DrawLine3D(
+			rl.NewVector3(-halfSize, 0, pos),
+			rl.NewVector3(halfSize, 0, pos),
+			rl.Gray,
+		)
+		
+		// Lines parallel to Z axis
+		rl.DrawLine3D(
+			rl.NewVector3(pos, 0, -halfSize),
+			rl.NewVector3(pos, 0, halfSize),
+			rl.Gray,
+		)
+	}
+
+	// Draw grid lines on XY plane (vertical grid facing Z)
+	for i := 0; i <= size; i++ {
+		pos := float32(i)*spacing - halfSize
+		
+		// Lines parallel to X axis
+		rl.DrawLine3D(
+			rl.NewVector3(-halfSize, pos, 0),
+			rl.NewVector3(halfSize, pos, 0),
+			rl.LightGray,
+		)
+		
+		// Lines parallel to Y axis
+		rl.DrawLine3D(
+			rl.NewVector3(pos, -halfSize, 0),
+			rl.NewVector3(pos, halfSize, 0),
+			rl.LightGray,
+		)
+	}
+
+	// Draw grid lines on YZ plane (vertical grid facing X)
+	for i := 0; i <= size; i++ {
+		pos := float32(i)*spacing - halfSize
+		
+		// Lines parallel to Y axis
+		rl.DrawLine3D(
+			rl.NewVector3(0, -halfSize, pos),
+			rl.NewVector3(0, halfSize, pos),
+			rl.LightGray,
+		)
+		
+		// Lines parallel to Z axis
+		rl.DrawLine3D(
+			rl.NewVector3(0, pos, -halfSize),
+			rl.NewVector3(0, pos, halfSize),
+			rl.LightGray,
+		)
+	}
 }
