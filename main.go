@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"math"
 )
@@ -16,8 +17,8 @@ const (
 var (
 	pause            = false // Press 'P' to toggle
 	mouseSensitivity = float32(0.003)
-	yaw              = float32(0.0)
-	pitch            = float32(0.0)
+	yaw              = float32(3.92699) // Start facing -Z direction
+	pitch            = float32(-0.628)  // Start looking slightly down
 )
 
 func processInput(camera *rl.Camera3D) {
@@ -27,36 +28,28 @@ func processInput(camera *rl.Camera3D) {
 	}
 
 	// Handle mouse rotation when right button is held
-	if rl.IsMouseButtonDown(rl.MouseRightButton) {
-		// Set mouse to center and get delta from center
-		centerX := screenWidth / 2
-		centerY := screenHeight / 2
-		mousePos := rl.GetMousePosition()
-		
-		deltaX := mousePos.X - float32(centerX)
-		deltaY := mousePos.Y - float32(centerY)
-		
-		// Only process if there's actual movement
-		if deltaX != 0 || deltaY != 0 {
-			yaw += deltaX * mouseSensitivity
-			pitch -= deltaY * mouseSensitivity
+	if !rl.IsMouseButtonDown(rl.MouseRightButton) {
+		rl.SetMousePosition(screenWidth/2, screenHeight/2)
+	} else {
+		delta := rl.GetMouseDelta()
 
-			// Clamp pitch to prevent flipping
-			if pitch > 1.5 {
-				pitch = 1.5
-			}
-			if pitch < -1.5 {
-				pitch = -1.5
-			}
+		yaw += delta.X * mouseSensitivity
+		pitch -= delta.Y * mouseSensitivity
 
-			// Update camera target based on yaw and pitch
-			camera.Target.X = camera.Position.X + float32(math.Cos(float64(yaw))*math.Cos(float64(pitch)))
-			camera.Target.Y = camera.Position.Y + float32(math.Sin(float64(pitch)))
-			camera.Target.Z = camera.Position.Z + float32(math.Sin(float64(yaw))*math.Cos(float64(pitch)))
+		fmt.Println(yaw, pitch)
+
+		// Clamp pitch to prevent flipping
+		if pitch > 1.5 {
+			pitch = 1.5
 		}
-		
-		// Reset mouse to center
-		rl.SetMousePosition(centerX, centerY)
+		if pitch < -1.5 {
+			pitch = -1.5
+		}
+
+		// Update camera target based on yaw and pitch
+		camera.Target.X = camera.Position.X + float32(math.Cos(float64(yaw))*math.Cos(float64(pitch)))
+		camera.Target.Y = camera.Position.Y + float32(math.Sin(float64(pitch)))
+		camera.Target.Z = camera.Position.Z + float32(math.Sin(float64(yaw))*math.Cos(float64(pitch)))
 	}
 
 	// Calculate forward and right vectors in XZ plane only

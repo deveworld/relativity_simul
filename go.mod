@@ -2,13 +2,10 @@ module relativity_simulation_2d
 
 go 1.24.3
 
-require github.com/gen2brain/raylib-go/raylib v0.0.0-20240930075631-c66f9e2942fe
+require github.com/gen2brain/raylib-go/raylib v0.55.1
 
 require (
-	github.com/ebitengine/gomobile v0.0.0-20240911145611-4856209ac325 // indirect
-	github.com/ebitengine/hideconsole v1.0.0 // indirect
-	github.com/ebitengine/purego v0.8.0 // indirect
-	github.com/jezek/xgb v1.1.1 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.25.0 // indirect
+	github.com/ebitengine/purego v0.8.4 // indirect
+	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
+	golang.org/x/sys v0.33.0 // indirect
 )
