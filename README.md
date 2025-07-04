@@ -1,30 +1,33 @@
-# Relativity Simulation
-Simulate Gravity with Golang
+# (General) Relativity Simulator
+A simple simulator designed to visualize the principles of general relativity, written in Go.
 
-The goal is to visualize the theory of general relativity.
+This project aims to create a visual representation of how gravity works according to the theory of general relativity.
 
-For now, the simulator computes on the CPU. (But still, I plan to move the computation part to the GPU using GLSL in the future.)
+Currently, all physics calculations are performed on the CPU. Future plans include offloading these computations to the GPU using GLSL for a significant performance boost.
 
 ## Getting Started
-### Use releases
-There is release for Windows x64.
+There are two ways to run the simulator: downloading a pre-built release or building it from the source code.
 
-Checkout [GitHub Releases](https://github.com/deveworld/relativity_simul/releases).
+### Option 1: Download a Release
+Pre-compiled binaries for Windows (x64) are available on the [GitHub Releases page](https://github.com/deveworld/relativity_simul/releases). This is the quickest way to get started.
 
-### Build
-If your computer's OS is not Windows, or you choose build yourself on whatever, you can build this simulator.
+### Option 2: Build from Source
+If you are using an operating system other than Windows, or if you simply prefer to compile it yourself, you can build the project from its source code.
 
-First, clone this repository.
+First, clone the repository to your local machine:
 ```
-git clone https://github.com/deveworld/relativity_simul && cd relativity_simul
+git clone https://github.com/deveworld/relativity_simul
+cd relativity_simul
 ```
 
-And build it. Done.
+Then, use the Go toolchain to build the executable:
 ```
 go build .
 ```
 
-## Usage
-You can't manipulate the simulation numbers yet.
+## Controls
+Once the simulation is running, you can navigate the camera using your keyboard.
+- W, A, S, D: Move forward, left, backward, and right.
+- Q, E: Move up and down.
 
-Use W,A,S,D and Q,E for move.
+Note: The ability to adjust simulation parameters in real-time is not yet implemented.
