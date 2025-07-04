@@ -12,10 +12,10 @@ const (
 	screenWidth  = 1920
 	screenHeight = 1080
 
-	simulationWidth = 50
-	simulationDepth = 50
+	simulationWidth = 128
+	simulationDepth = 128
 
-	numParticles = 1
+	numParticles = 5
 	gridVisScale = 0.1
 	gConstant    = 1.0
 
@@ -108,6 +108,7 @@ func (s *Simulation) calculateAccelerationField() {
 	s.depositMass()
 	// Step 2: Solve for potential Φ using FFT
 	s.solvePotential()
+	//s.solvePotentialGPU()
 	// Step 3: Calculate acceleration (a = -∇Φ) from the potential field
 	s.calculateGradient()
 }
@@ -195,7 +196,6 @@ func (s *Simulation) solvePotential() {
 }
 
 func (s *Simulation) solvePotentialGPU() {
-	// TODO: solvePotential using GPU acceleration
 }
 
 // calculateGradient computes acceleration a = -∇Φ using central differences
@@ -386,7 +386,7 @@ func draw(camera *rl.Camera, sim *Simulation) {
 	rl.DrawText("GR (Weak-Field) N-Body Simulation", 10, 10, 20, rl.Lime)
 	rl.DrawText(fmt.Sprintf("Particles: %d", numParticles), 10, 40, 20, rl.White)
 	rl.DrawText("Right-click + Mouse to look", 10, 70, 20, rl.White)
-	rl.DrawText("WASDQE to move", 10, 100, 20, rl.White)
+	rl.DrawText("W,A,S,D,Q,E to move", 10, 100, 20, rl.White)
 	if pause {
 		rl.DrawText("PAUSED (Press P to unpause)", screenWidth/2-150, screenHeight/2-10, 20, rl.Yellow)
 	}
