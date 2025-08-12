@@ -84,7 +84,7 @@ xcode-select --install
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/deveworld/relativity_simul
 cd relativity_simul_2d
 
 # Download dependencies
